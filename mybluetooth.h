@@ -10,6 +10,8 @@
 #include<QBluetoothSocket>
 #include<QBluetoothUuid>
 #include<QBluetoothAddress>
+#include<QTextStream>
+
 
 class MyBluetooth: public QObject
 {
@@ -19,6 +21,7 @@ public:
     MyBluetooth();
     void startDeviceDiscovery();
     void startLocalDiscovery();
+    void WriteData();
 private:
 
     QBluetoothLocalDevice localDevice;
@@ -33,6 +36,7 @@ public slots:
     void SelectDevice();
     void SocketError();
     void SocketConnect();
+
 };
 
 #endif // MYBLUETOOTH_H

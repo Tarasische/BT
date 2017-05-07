@@ -27,33 +27,15 @@ void MyBluetooth::startLocalDiscovery()
     }
 }
 
-//void MyBluetooth::startDeviceDiscovery()
-//{
-
-//      // Create a discovery agent and connect to its signals
-//      QBluetoothDeviceDiscoveryAgent *discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
-//      connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)),
-//              this, SLOT(deviceDiscovered(QBluetoothDeviceInfo)));
-
-//      // Start a discovery
-//      discoveryAgent->start();
-
-//      //...
-//  }
 
 void MyBluetooth::startDeviceDiscovery()
 {
-
-      // Create a discovery agent and connect to its signals
       discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
       connect(discoveryAgent, SIGNAL(finished()),
               this, SLOT(deviceDiscovered()));
-
-      // Start a discovery
       discoveryAgent->start();
+}
 
-      //...
-  }
 void MyBluetooth::deviceDiscovered()
 {
    qDebug() << "discovery finished";
@@ -65,8 +47,7 @@ void MyBluetooth::deviceDiscovered()
            qDebug() << "Device: "
                     << listofdevice.at(i).name().trimmed()
                     << " ("
-                    << listofdevice.at(i).address().toString().trimmed() << ")"
-                    << listofdevice.at(i).deviceUuid();
+                    << listofdevice.at(i).address().toString().trimmed() << ")";
    }
    else
        qDebug() << "No services found";
@@ -75,32 +56,25 @@ void MyBluetooth::deviceDiscovered()
    std::cin >> a;
    selectedDevice = listofdevice.at(a);
    SelectDevice();
-//   socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol, this);
-//    connect(socket,SIGNAL(connected()),this,SLOT(connectedtodevice())) ;
-//    socket->connectToService(listofdevice.at(a).address(),
-//                                 QBluetoothUuid(QBluetoothUuid::SerialPort));
-//    //socket->connectToService(listofdevice.at(a).address(),listofdevice.at(a).deviceUuid());
-//   qDebug() << "discover finished" ;
 }
 
 void MyBluetooth::SelectDevice()
 {
-    QBluetoothUuid MyUuid (QString("5afb2136-47ab-45f8-8c2a-891bbe76454a"));
-    selectedDevice.setDeviceUuid(MyUuid);
-    socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol);
+    socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol,this);
     qDebug() << "User select a device: " << selectedDevice.name() << " ("
-                << selectedDevice.address().toString().trimmed() << ")"
-                << selectedDevice.deviceUuid() ;
+                << selectedDevice.address().toString().trimmed() << ")";
     connect(socket, SIGNAL(error(QBluetoothSocket::SocketError)), this, SLOT(SocketError()));
     connect(socket, SIGNAL(connected()), this, SLOT(SocketConnect()));
-    //socket->connectToService(QBluetoothAddress(selectedDevice.address()),QBluetoothUuid());
+    socket->connectToService(QBluetoothAddress(selectedDevice.address()),
+                                 QBluetoothUuid(QBluetoothUuid::SerialPort));
 
-    socket->connectToService(QBluetoothAddress(selectedDevice.address()), QBluetoothUuid(MyUuid));
 }
 
 void MyBluetooth::SocketConnect()
 {
-    qDebug() << " Socket connected succesful";
+    qDebug() << " Socket connected succesful ";
+    qDebug() << " You connect to name : " << socket->peerName() << " adrress :" << socket->peerAddress().toString().trimmed();
+    WriteData();
 }
 
 void MyBluetooth::SocketError()
@@ -113,8 +87,13 @@ void MyBluetooth::connectedtodevice()
     qDebug() << " conneced to dsevice succesfull";
 }
 
-  // In your local slot, read information about the found devices
-//void MyBluetooth::deviceDiscovered(const QBluetoothDeviceInfo &device)
-//{
-//   qDebug() << "Found new device:" << device.name() << '(' << device.address().toString() << ')';
-//}
+void MyBluetooth::WriteData()
+{
+    std::cout << " Write data, to exit tap <<Q>> " << std::endl;
+    char arr[20];
+    std::cin.getline(arr,3,'\n');
+    while(arr[0] != 'Q'){
+    std::cin.getline(arr,3,'\n');
+    socket->write(arr,20);
+    }
+}

@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     MyBluetooth localDev;
-    localDev.startLocalDiscovery();//
+    localDev.startLocalDiscovery();
     localDev.startDeviceDiscovery();
 
     return a.exec();
