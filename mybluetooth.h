@@ -19,23 +19,30 @@ class MyBluetooth: public QObject
 
 public:
     MyBluetooth();
-    void startDeviceDiscovery();
-    void startLocalDiscovery();
-    void WriteData();
 private:
 
-    QBluetoothLocalDevice localDevice;
-    QString localDeviceName;
+    QBluetoothLocalDevice  localDevice;
     QList<QBluetoothDeviceInfo> listofdevice;
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
     QBluetoothSocket * socket;
     QBluetoothDeviceInfo selectedDevice;
 public slots:
+    void startDeviceDiscovery();
+    void startLocalDiscovery();
     void deviceDiscovered();
-    void connectedtodevice();
-    void SelectDevice();
+    void SelectDevice(int index);
+    void ConnectDevice();
     void SocketError();
-    void SocketConnect();
+    void SocketSuccessfull();
+    void WriteData(QString text);
+    void DisconnectDevice();
+    void DisconnectSuccessfull();
+signals:
+    void SendText(QString text);
+    void SendItem(QString item);
+    void OpenInput();
+    void CloseInput();
+    void SetScanEnable();
 
 };
 

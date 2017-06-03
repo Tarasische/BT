@@ -1,16 +1,12 @@
-#include <QCoreApplication>
-#include<QBluetoothLocalDevice>
-#include<QBluetoothDeviceDiscoveryAgent>
-#include<QString>
-#include<QList>
-#include"mybluetooth.h"
+#include <QApplication>
+#include"mainwindow.h"
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
-    MyBluetooth localDev;
-    localDev.startLocalDiscovery();//
-    localDev.startDeviceDiscovery();
+    QApplication app(argc, argv);
+    MainWindow a;
+    a.show();
 
-    return a.exec();
+
+    return app.exec();
 }

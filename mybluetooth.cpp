@@ -10,26 +10,25 @@ MyBluetooth::MyBluetooth()
 void MyBluetooth::startLocalDiscovery()
 {
     if (localDevice.isValid()) {
-        qDebug() << "Bluetooth is available on this device";
-        // Turn Bluetooth on
+        QString str1 ;
+        emit SendText("Bluetooth is available on this device");
         localDevice.powerOn();
-
-        // Read local device name
-        localDeviceName = localDevice.name();
-        qDebug() << "Local device: " << localDeviceName << " ("
-                         << localDevice.address().toString().trimmed() << ")";
-        // Make it visible to others
+        QString str2 = localDevice.name();
+        QString str3 = localDevice.address().toString().trimmed();
+        QString str4 = str2 + " " + str3;
+        emit SendText(str4);
+        emit SetScanEnable();
         localDevice.setHostMode(QBluetoothLocalDevice::HostDiscoverable);
-
-        // Get connected devices
-        QList<QBluetoothAddress> remotes;
-        remotes = localDevice.connectedDevices();
     }
+    else
+        emit SendText(" Can not find local Bluetooth device");
+
 }
 
 
 void MyBluetooth::startDeviceDiscovery()
 {
+      emit SendText("Start devices discovery...");
       discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
       connect(discoveryAgent, SIGNAL(finished()),
               this, SLOT(deviceDiscovered()));
@@ -38,62 +37,93 @@ void MyBluetooth::startDeviceDiscovery()
 
 void MyBluetooth::deviceDiscovered()
 {
-   qDebug() << "discovery finished";
+   emit SendText("Discovery finished");
    listofdevice = discoveryAgent->discoveredDevices();
    discoveryAgent->stop();
+   //delete discoveryAgent;
    if (!(listofdevice.isEmpty())) {
-       qDebug() << "Found new services:";
-       for(int i = 0; i < listofdevice.size(); ++i)
-           qDebug() << "Device: "
-                    << listofdevice.at(i).name().trimmed()
-                    << " ("
-                    << listofdevice.at(i).address().toString().trimmed() << ")";
+       emit SendText("Found new devices: ");
+       for(int i = 0; i < listofdevice.size(); ++i){
+           QString str1 =  listofdevice.at(i).name().trimmed();
+           QString str2 =  listofdevice.at(i).address().toString().trimmed();
+           QString str3 = str1 + "  " + str2;
+           emit SendItem(str3);
+       }
    }
    else
-       qDebug() << "No services found";
-   std::cout << "enter integer ";
-   int a;
-   std::cin >> a;
-   selectedDevice = listofdevice.at(a);
-   SelectDevice();
+       emit SendText( "No devices found");
 }
 
-void MyBluetooth::SelectDevice()
+void MyBluetooth::SelectDevice(int index)
+{
+   selectedDevice = listofdevice.at(index);
+   listofdevice.clear();
+}
+
+void MyBluetooth::ConnectDevice()
 {
     socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol,this);
-    qDebug() << "User select a device: " << selectedDevice.name() << " ("
-                << selectedDevice.address().toString().trimmed() << ")";
+    emit SendText( "User select  device: " + selectedDevice.name() + " ( "
+                + selectedDevice.address().toString().trimmed() + " )");
     connect(socket, SIGNAL(error(QBluetoothSocket::SocketError)), this, SLOT(SocketError()));
-    connect(socket, SIGNAL(connected()), this, SLOT(SocketConnect()));
+    connect(socket, SIGNAL(connected()), this, SLOT(SocketSuccessfull()));
     socket->connectToService(QBluetoothAddress(selectedDevice.address()),
                                  QBluetoothUuid(QBluetoothUuid::SerialPort));
 
 }
 
-void MyBluetooth::SocketConnect()
+void MyBluetooth::SocketSuccessfull()
 {
-    qDebug() << " Socket connected succesful ";
-    qDebug() << " You connect to name : " << socket->peerName() << " adrress :" << socket->peerAddress().toString().trimmed();
-    WriteData();
+    emit SendText( "Socket connected succesful ");
+    emit SendText( "You connect to name : ");
+    emit SendText( socket->peerName() + " adrress :" + socket->peerAddress().toString().trimmed());
+    emit OpenInput();
 }
 
 void MyBluetooth::SocketError()
 {
-    qDebug() << " Socket connected error";
+    emit SendText(" Socket connected error");
 }
 
-void MyBluetooth::connectedtodevice()
+void MyBluetooth::WriteData(QString text)
 {
-    qDebug() << " conneced to dsevice succesfull";
-}
-
-void MyBluetooth::WriteData()
-{
-    std::cout << " Write data, to exit tap <<Q>> " << std::endl;
-    char arr[20];
-    std::cin.getline(arr,3,'\n');
-    while(arr[0] != 'Q'){
-    std::cin.getline(arr,3,'\n');
-    socket->write(arr,20);
+    if(!text.isEmpty())
+    {
+        std::string sender_text = text.toStdString();
+        char info[text.length()];
+        int j = 0;
+        for(int i = 0; i < text.length();j++, i++)
+        {
+            if(!(('a' <= sender_text[i] && sender_text[i] <= 'z') ||
+                ('A' <= sender_text[i] && sender_text[i] <= 'Z') ||
+                ('0' <= sender_text[i] && sender_text[i] <= '9')))
+            {
+                --j;
+                emit SendText("Valid Symbol in string");
+                continue;
+            }
+            info[j] = sender_text[i];
+        }
+        char last[j];
+        for(int i = 0; i < j; ++i)
+            last[i] = info[i];
+        socket->write(last,j);
     }
+    else
+        emit SendText("Enter symbol");
+
 }
+
+void MyBluetooth::DisconnectDevice()
+{
+    connect(socket, SIGNAL(disconnected()),this, SLOT(DisconnectSuccessfull()));
+    socket->disconnectFromService();
+}
+
+void MyBluetooth::DisconnectSuccessfull()
+{
+    emit CloseInput();
+    emit SendText("Disconnect Successfull");
+
+}
+
