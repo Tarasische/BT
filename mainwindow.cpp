@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(OutText(QString)), ui->out, SLOT(append(QString)));
     connect(dev, SIGNAL(OpenInput()) , this, SLOT(openInput()));
     ui->input->setEnabled(false);
-    QRegExp exp ("[a-zA-Z]{0,9}[0-9]{0,9}[a-zA-Z]{0,9}[0-9]{0,9}[a-zA-Z]{0,9}[0-9]{0,9}");
+    QRegExp exp ("[a-zA-Z]{0,10}[0-9]{0,10}[a-zA-Z]{0,10}[0-9]{0,10}[a-zA-Z]{0,10}");
     ui->input->setValidator(new QRegExpValidator(exp, this) );
     ui->out->setEnabled(false);
     connect(ui->disconnect, SIGNAL(clicked(bool)), dev, SLOT(DisconnectDevice()));
@@ -53,11 +53,13 @@ void MainWindow::on_devices_doubleClicked(const QModelIndex &index)
 
 
 void MainWindow::on_input_editingFinished()
-{
-
-    emit SendInput(ui->input->text());
-    emit OutText("You enter :");
-    emit OutText(ui->input->text());
+{   
+    if(ui->input->isActiveWindow())
+    {
+        emit SendInput(ui->input->text());
+        emit OutText("You enter :");
+        emit OutText(ui->input->text());
+    }
     ui->input->clear();
 }
 

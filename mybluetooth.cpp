@@ -62,6 +62,7 @@ void MyBluetooth::SelectDevice(int index)
 
 void MyBluetooth::ConnectDevice()
 {
+
     socket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol,this);
     emit SendText( "User select  device: " + selectedDevice.name() + " ( "
                 + selectedDevice.address().toString().trimmed() + " )");
@@ -99,7 +100,7 @@ void MyBluetooth::WriteData(QString text)
                 ('0' <= sender_text[i] && sender_text[i] <= '9')))
             {
                 --j;
-                emit SendText("Valid Symbol in string");
+                emit SendText("Valid Symbol in a string");
                 continue;
             }
             info[j] = sender_text[i];
